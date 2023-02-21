@@ -63,7 +63,7 @@ def ageDivision(personBuffer,idadeMax):
         
     while min <= max:
         age = list(filter(lambda x:min<x.idade<min+5,personBuffer))
-        dictionary[f"[{min}-{min+9}]"]=len(age)/len(personBuffer)
+        dictionary[f"[{min}-{min+4}]"]=len(age)/len(personBuffer)
         #print(f"[{min}-{min+4}]: {len(age)}")
         min = min + 5
 
@@ -96,9 +96,9 @@ def main():
     while escolha != 0:
         escolha = int(input("Qual distribuicao deseja visualizar: \n1 - Sexo\n2 - Idade\n3 - Colesterol\n0- Sair: "))
         if escolha != 0:
-            distribution = distribution[escolha]
+            distributionVar = distribution[escolha]
             #print(distribution)
-            print(get_tabela(distribution))
+            print(get_tabela(distributionVar))
 
 if __name__ == "__main__":
     main()
