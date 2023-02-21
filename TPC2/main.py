@@ -1,4 +1,4 @@
-#Resposta a TPC2
+#Resposta 1 a TPC2
 string = input("Somador ON/OFF:\n")
 
 string = string.rstrip().split(' ')
