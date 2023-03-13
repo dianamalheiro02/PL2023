@@ -2,69 +2,113 @@
 import json
 import re
 
-padrao_header=r"Número,Nome,Curso(,?Notas?(?P<Notas>{\d,\d})?(?:::)?(?P<agragator>\w*)?(?:.*))?"
-padrao_conteudo=r"(?P<Número>\d*),(?P<Nome>.*[^\W\d_]),(?P<curso>.*[^\W\d_]),?(?P<Notas>[\d,]*)?\n?"
+padrao_header=r"Número,Nome,Curso(,?Notas?(?P<Notas>{\d,\d})?(?:::)?(?P<agregator>\w*)?(?:.*))?"
+padrao_content=r"(?P<Número>\d*),(?P<Nome>.*[^\W\d_]),(?P<curso>.*[^\W\d_]),?(?P<Notas>[\d,]*)?\n?"
 
-def convert_csv_to_json(csv_file):
-    with open(csv_file, 'r') as file:
-        info=file.readlines()
-        header = info[0]
-        conteudo = info[:1]
+def csv_to_json(csv_file_path,json_file_path):
+    # Abre o arquivo CSV e lê o conteúdo
+    with open(csv_file_path, 'r') as csv_file:
 
-        headerP=re.compile(padrao_header)
-        conteudoP=re.compile(padrao_conteudo)
+        read = csv_file.readlines()
+        header = read[0]
+        content = read[1::]
 
-        match=re.search(headerP,header)
-        limite=(0,0)
-        flag=False
+        #print(header)
+        #print(content)
 
-        if match:
-            matchFound=match.groupdict()
-            flag=True if matchFound('agregator') else False
+        headerP = re.compile(padrao_header)
+        contentP = re.compile(padrao_content)
 
-            if matchFound['Notas'] is not None:
-                if ',' not in matchFound['Notas']:
-                    limite=(int((matchFound['Notas'])[1]),int((matchFound['Notas'])[1]))
+        #deling with header:
+        headerMatch=re.search(headerP,header)
+        limit=(0,0)
+        agregacao=False
 
+        if headerMatch:
+            m = headerMatch.groupdict()
+            if m['agregator'] is not None:
+                agregacao=True
+            else:
+                agregacao=False
+
+            if m['Notas'] is not None:
+                if ',' not in m['Notas']:
+                    limit = (int((m['Notas'])[1]),int((m['Notas'])[1]))
                 else:
-                    limite=(int((matchFound['Notas'])[1]),int((matchFound['Notas'])[-2]))
+                    limit = (int((m['Notas'])[1]),int((m['Notas'])[-2]))
 
+        #dealing with content
         data={}
         notas=[]
-        x=0
+        sum=0
 
-        for line in conteudo:
-            matchConteudo=re.fullmatch(conteudoP,line)
+        for l in content:
+            contentMatch=re.fullmatch(contentP,l)
 
-            if conteudoP:
-                matchC=matchConteudo.groupdict()
-                notas=list(filter(str.strip,matchC['Notas'].split(',')))
+            if contentMatch:
+                cm=contentMatch.groupdict()
+                notas = list(filter(str.strip, cm['Notas'].split(',')))
 
-                if limite[0] <= len(notas) <= limite[1]:
-                    if flag:
-                        agregador = matchFound['agregador']
+                if limit[0] <= len(notas) <= limit[1]:
+                    if agregacao:
+                        type = m['agregator']
+
                         if type == 'sum':
                             for n in notas:
-                                x+=int(n)
+                                sum+=int(n)
                             
-                            matchC['Notas']=x
+                            cm['Notas']=sum
 
                         elif type == 'media':
-                            media=[]
-                            for i,n in enumerate(notas):
-                                media.append(int(n)/2)
-                        
-                    data[matchC['Número']]=matchC
-                        
-        try:
-            res=data
-            with open('alunos.json','w') as fileOut:
-                json.dump(res,fileOut,indent=4)
+                            media=0
+                            for n in notas:
+                                media+=int(n)/2
 
+                            cm['Notas']=media
+                        
+                        elif type == 'maior':
+                            maior=notas.sort(reverse=True)
+                            cm['Notas']=maior[0]
+
+                        elif type == 'menor': 
+                            menor=notas.sort(reverse=False)
+                            cm['Notas']=menor[0]
+
+                    data[cm['Número']] = cm
+         
+        try:
+            output = list(data.items())
+            print(output)
+            with open(json_file_path, 'w') as file:
+                json.dump(output, file, indent=4)
         except Exception as e:
             print(e)
-        
 
-convert_csv_to_json('alunos.csv')
-convert_csv_to_json('alunos2.csv')
-convert_csv_to_json('alunos3.csv')
+    
+    # Converte a lista em JSON e retorna o resultado
+    #output=list(data.items())
+    #return json.dumps(output)
+
+# Exemplo de uso 1
+csv_file_path = 'alunos.csv'
+json_file_path = 'alunos.json'
+json_data = csv_to_json(csv_file_path,json_file_path)
+#print(json_data)
+#with open("alunos.json", "w") as arquivo:     
+#    json.dump(json_data, arquivo, indent=4)
+
+# Exemplo de uso 2
+csv_file_path = 'alunos2.csv'
+json_file_path = 'alunos2.json'
+json_data = csv_to_json(csv_file_path,json_file_path)
+#print(json_data)
+#with open("alunos2.json", "w") as arquivo:     
+#    json.dump(json_data, arquivo, indent=4)
+
+# Exemplo de uso 3
+csv_file_path = 'alunos3.csv'
+json_file_path = 'alunos3.json'
+json_data = csv_to_json(csv_file_path,json_file_path)
+#print(json_data)
+#with open("alunos3.json", "w") as arquivo:     
+#    json.dump(json_data, arquivo, indent=4)
