@@ -114,7 +114,7 @@ def dealWithInput(operacao):
             if exit == 1 or levantou==0:
                 operacao="ABORTAR"
             else:
-                listM=re.sub('MOEADAS ','',operacao)
+                listM=re.sub('MOEDAS ','',operacao)
                 aux=re.sub('\,','',listM)
                 listMoedas=re.sub('\.','',aux)
 
