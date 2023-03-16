@@ -28,6 +28,16 @@ def getSaldoCent(moeda):
     res=moeda.strip("c")
     return int(res)
 
+def printSaldo(euro,cent):
+    if cent<0:
+        if euro>=1:
+            euro-=1
+            cent=100+cent
+    while cent>=100:
+        euro+=1
+        cent-=100
+    print(f"Saldo disponível = {euro}e{cent}c")
+    return euro,cent
 
 def validaChamada(aux,euro,cent):
     flag=0
@@ -43,7 +53,6 @@ def validaChamada(aux,euro,cent):
                 print("Saldo insuficiente.")
                 flag=1
             else:
-                euroT=euro
                 centT=cent-50
         else:
             euroT=euro-1
@@ -59,12 +68,13 @@ def validaChamada(aux,euro,cent):
                 flag=1
             else:
                 centT=cent-25
-        elif euro == 1:
+        else:
             if cent>25:
                 centT=cent-25
                 euroT=euro
             else:
-                centT=euro*100-(25-cent)        
+                euroT=euro-1
+                centT=100-(25-cent)      
                 
     elif aux[0]=='6' and (aux[1]=='0' or aux[1]=='4') and aux[2]=='1':
         print("Chamada bloqueada. Dê outro número.")
@@ -77,11 +87,19 @@ def validaChamada(aux,euro,cent):
             if cent<10:
                 print("Saldo insuficiente.")
                 flag=1
-        elif euro==1:
+            else:
+                centT=cent-10
+        elif euro>=1:
             if cent>10:
+                euroT=euro
                 centT=cent-10
             else:
-                centT=euro*100-(10-cent)
+                euroT=euro-1
+                centT=100-(10-cent)
+
+    elif aux[0]=='8' and aux[1]=='0' and aux[2]=='0':
+        euroT=euro
+        centT=cent
 
     return flag,euroT,centT
 
@@ -93,8 +111,6 @@ def dealWithInput(operacao):
     levantou=0
     dinheiro=0
     chamou=0
-    #abortou=0
-    #pausou=0
 
     while exit!=0:
         a=re.match(p1,operacao)
@@ -121,7 +137,7 @@ def dealWithInput(operacao):
                 moedas=listMoedas.split(" ")
 
                 for moeda in moedas:
-                    if moeda != "MOEDAS " and moeda not in moedasPssíveis:
+                    if moeda != "MOEDAS" and moeda not in moedasPssíveis:
                         print(f"{moeda} - moeda inválida;")
                     else:
                         if moeda == "1e" or moeda == "2e":
@@ -129,19 +145,18 @@ def dealWithInput(operacao):
                         else:
                             cent += getSaldoCent(moeda)
                 
-                print(f"Saldo = {euro}e{cent}c")
+                euro,cent=printSaldo(euro,cent)
                 
                 dinheiro=1
                 operacao=getInput()
                 exit+=1
 
         elif c:
-            if exit == 1  or chamou==0:
+            if exit == 1  or chamou==0 or levantou==0:
                 operacao="ABORTAR"
             else:
-                print(f"Troco = {euroT}e{centT}c; Volte sempre!")
-                exit+=1
-                operacao="ABORTAR"
+                print(f"Troco = {euro}e{cent}c; Volte sempre!")
+                exit=0
             
         elif d:
             if exit == 1 or dinheiro==0:
@@ -149,18 +164,29 @@ def dealWithInput(operacao):
             else:
                 aux=re.sub('T\=','',operacao)
                 valid,euroT,centT=validaChamada(aux,euro,cent)
+                #debug
+                #print(euro)
+                #print(euroT)
+                #print(cent)
+                #print(centT)
+
                 if valid == 2:
                     print("Digite o novo número aqui: ")
                     operacao=getInput()
-                if valid == 1:
+                elif valid == 1:
                     print("Coloque mais moedas aqui: ")
+                    operacao=getInput()
+                else:
+                    #euro=euroT
+                    #cent=centT
+                    euro,cent=printSaldo(euroT,centT)
                     operacao=getInput()
                 
                 exit+=1
                 chamou=1 
 
         elif e:
-            print(f"Cancelou a operação. Ficou com {euro}e{cent}c.")
+            print(f"Operação foi cancelada. Ficou com {euro}e{cent}c.")
             exit=0
 
 if __name__ == "__main__":
