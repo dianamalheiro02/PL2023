@@ -1,1 +1,0 @@
-#Resposta a TPC6
